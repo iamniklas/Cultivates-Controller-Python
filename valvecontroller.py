@@ -6,6 +6,7 @@ import json
 import requests
 
 errorLedPin = 4
+wateringLedPin = 17
 relayPin0 = 23
 
 valveId = 1
@@ -17,18 +18,22 @@ useSensors = 6
 GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(errorLedPin, GPIO.OUT)
+GPIO.setup(wateringLedPin, GPIO.OUT)
 GPIO.setup(relayPin0, GPIO.OUT)
 
 def water(duration):
 	print("Watering now")
 	GPIO.output(relayPin0, GPIO.LOW)
+	GPIO.output(wateringLedPin, GPIO.HIGH)
 	time.sleep(duration)
 	GPIO.output(relayPin0, GPIO.HIGH)
+	GPIO.output(wateringLedPin, GPIO.LOW)
 	time.sleep(2)
 
 while True:
 	try:
 		GPIO.output(errorLedPin, GPIO.LOW)
+		GPIO.output(wateringLedPin, GPIO.LOW)
 		conn = http.client.HTTPConnection("000raspberry.ddns.net", timeout=0.5)
 		headers = {
 			'content-type': "application/json"
@@ -66,4 +71,5 @@ while True:
 	except Exception as e:
 		GPIO.output(errorLedPin, GPIO.HIGH)
 		print("An error occured")
+		print(e)
 		time.sleep(1)
