@@ -19,7 +19,7 @@ error_pin = shared.error_led_pin
 
 GPIO.setup(led_pin, GPIO.OUT)
 GPIO.setup(error_pin, GPIO.OUT)
-conn = http.client.HTTPConnection("192.168.178.50:8080", timeout=2) #2 seconds timeout
+conn = http.client.HTTPConnection("000raspberry.ddns.net:80", timeout=2) #2 seconds timeout
 
 spi = spidev.SpiDev()
 spi.open(0,0)
