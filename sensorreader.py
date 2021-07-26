@@ -8,18 +8,18 @@ import time
 import http.client
 import datetime
 import traceback
+import shared
 
 delay = 10
 
 GPIO.setmode(GPIO.BCM)
 
-measuringLedPin = 22
-errorLedPin = 4
+led_pin = shared.transmit_led_pin
+error_pin = shared.error_led_pin
 
-GPIO.setup(measuringLedPin, GPIO.OUT)
-GPIO.setup(errorLedPin, GPIO.OUT)
-
-conn = http.client.HTTPConnection("000raspberry.ddns.net", timeout=2) #2 seconds timeout
+GPIO.setup(led_pin, GPIO.OUT)
+GPIO.setup(error_pin, GPIO.OUT)
+conn = http.client.HTTPConnection("192.168.178.50:8080", timeout=2) #2 seconds timeout
 
 spi = spidev.SpiDev()
 spi.open(0,0)
@@ -31,9 +31,7 @@ def readChannel(channel):
   return data
 
 def updateDbContent(sensorId, value):
-  GPIO.output(measuringLedPin, GPIO.HIGH)
-
-  conn = http.client.HTTPConnection("000raspberry.ddns.net", timeout=2)
+  GPIO.output(led_pin, GPIO.HIGH)
 
   headers = {
       'content-type': "application/json",
@@ -45,19 +43,18 @@ def updateDbContent(sensorId, value):
 
   res = conn.getresponse()
   data = res.read()
+  #print(data)
 
   conn.close()
 
   time.sleep(0.125)
-  GPIO.output(measuringLedPin, GPIO.LOW)
+  GPIO.output(led_pin, GPIO.LOW)
   time.sleep(0.125)
 
 if __name__ == "__main__":
+  GPIO.output(error_pin, GPIO.LOW)
   try:
     while True:
-      GPIO.output(errorLedPin, GPIO.LOW)
-      GPIO.output(measuringLedPin, GPIO.LOW)
-
       for i in range(8):
           val = 0
           for j in range(50):
@@ -67,14 +64,10 @@ if __name__ == "__main__":
           try:
             updateDbContent(i, value)
           except Exception as e:
-            GPIO.output(measuringLedPin, GPIO.LOW)
-            GPIO.output(errorLedPin, GPIO.HIGH)
+            GPIO.output(led_pin, GPIO.LOW)
+            GPIO.output(error_pin, GPIO.HIGH)
             traceback.print_exc()
-            time.sleep(1)
-            GPIO.output(errorLedPin, GPIO.LOW)
       print("")
       time.sleep(delay)
   except KeyboardInterrupt:
     print("Cancel.")
-
-
